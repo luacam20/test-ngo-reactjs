@@ -1,9 +1,12 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {Input, Divider} from 'antd';
+import { FiTrash } from 'react-icons/fi';
 import {Container, Title, InputsContainer, InputsGroup, ButtonContainer, AntdButton} from './styles';
 
 import axios from 'axios';
-const CustomerRegister = () => {
+    
+    const CustomerRegister = () => {
+    
     const [customers, setCustomers] = useState([]);
 
     const [name, setName] = useState('');
@@ -12,6 +15,15 @@ const CustomerRegister = () => {
     const [street, setStreet] = useState('');
     const [number, setNumber] = useState('');
     const [neighborhood, setNeighborhood] = useState(''); 
+
+    useEffect(() => {
+        const localStorageCustomers = JSON.parse(localStorage.getItem('customersData'));
+    
+        if (localStorageCustomers?.length >= 1) {
+            setCustomers(localStorageCustomers);
+            console.log(localStorageCustomers);
+        }
+    }, []);
 
     const handleChangeName = useCallback((value)=>{
         setName(value);
@@ -64,9 +76,15 @@ const CustomerRegister = () => {
 
         const newCustomer = {name, phone, street, number, cep, neighborhood};
 
-        setCustomers([...customers, newCustomer]);
+        const updatedCustomers = [...customers, newCustomer]
 
-        localStorage.setItem('customersData', JSON.stringify(customers));
+        setCustomers(updatedCustomers);
+
+        console.log(updatedCustomers);
+
+        console.log(customers)
+
+        localStorage.setItem('customersData', JSON.stringify(updatedCustomers));
 
         setName('');
         setPhone('');
@@ -75,6 +93,19 @@ const CustomerRegister = () => {
         setNumber('');
         setNeighborhood('');
     }, [name, cep, phone, street, number, neighborhood, customers]);
+
+    const handleDeleteItem = useCallback((phone) => {
+        const customerToDelete = customers.find(customer => customer.phone === phone);
+
+        const newCustomersList = customers.filter(customer => customer.phone !== customerToDelete.phone);
+
+        console.log(customerToDelete)
+
+        setCustomers(newCustomersList);        
+
+        localStorage.removeItem('customersData');
+        localStorage.setItem('customersData', JSON.stringify(newCustomersList));
+    }, [customers])
 
     return (
         <Container> 
@@ -99,7 +130,7 @@ const CustomerRegister = () => {
                 </InputsGroup>
 
                 {customers.map(customer => (
-                    <p key={customer.phone}>{"Nome: " + customer.name + " | " + " Telefone: " + customer.phone + " | " + " Rua: " + customer.street + " | " + " n°: " + customer.number + " | " + " CEP: " + customer.cep + " | " + " Bairro: " + customer.neighborhood}</p>
+                    <p key={customer.phone}>{"Nome: " + customer.name + " | " + " Telefone: " + customer.phone + " | " + " Rua: " + customer.street + " | " + " n°: " + customer.number + " | " + " CEP: " + customer.cep + " | " + " Bairro: " + customer.neighborhood} <AntdButton style={{width: "46px"}} onClick={() => handleDeleteItem(customer.phone)} type="primary" ><FiTrash/></AntdButton></p>
                 ))}
 
                 <ButtonContainer>
